@@ -8,6 +8,23 @@ import subprocess
 from typing import Optional
 
 
+def pdbfixer(input_pdb_file: str, output_dir: str) -> str:
+    # Dont use the protonation, just fix the pdb file
+    # pdbfixer --pdbid=6o0k --add-residues --ph=7.4 --output=pdbfixer_74.pdb
+    print(f"Starting fixing your file: {input_pdb_file}")
+    base_name = os.path.splitext(os.path.basename(input_pdb_file))[0]
+    print(base_name)
+    output_pdb_file = os.path.join(output_dir, f"{base_name}_stipped_fixed.pdb")
+    subprocess.run(["pdbfixer",
+                    input_pdb_file,
+                    "--add-atoms=all",
+                    "--add-residues",
+                    "--keep-heterogens=none", 
+                    "--verbose",
+                    f"--output={output_pdb_file}"])
+    print(f'Your PDB file is fixed: {output_pdb_file}')
+    return output_pdb_file
+
 def protonation(input_file: str, output_dir: str, pH_value: float = 7.4) -> str:
     """
     Perform protonation on the input PDB file using pdb2pqr.
@@ -21,7 +38,7 @@ def protonation(input_file: str, output_dir: str, pH_value: float = 7.4) -> str:
         str: Path to the output PDB file.
     """
     base_name = os.path.splitext(os.path.basename(input_file))[0]
-    output_pdb_file = os.path.join(output_dir, f"{base_name}.pdb")
+    output_pdb_file = os.path.join(output_dir, f"{base_name}_protonated.pdb")
 
     # Run pdb2pqr
     subprocess.run([
@@ -29,23 +46,6 @@ def protonation(input_file: str, output_dir: str, pH_value: float = 7.4) -> str:
         str(pH_value), input_file, output_pdb_file
     ], check=True)
     print(f'Output PDB file saved at: {output_pdb_file}')
-    return output_pdb_file
-
-
-def pdbfixer(input_pdb_file: str, output_dir: str, pH_value: float = 7.4) -> str:
-    # pdbfixer --pdbid=6o0k --add-residues --ph=7.4 --output=pdbfixer_74.pdb
-    print(f"Starting fixing your file: {input_pdb_file}")
-    base_name = os.path.splitext(os.path.basename(input_pdb_file))[0]
-    print(base_name)
-    output_pdb_file = os.path.join(output_dir, f"{base_name}.pdb")
-    subprocess.run(["pdbfixer",
-                    input_pdb_file,
-                    "--add-atoms=all",
-                    "--add-residues",
-                    f"--ph={pH_value}",
-                    "--verbose",
-                    f"--output={output_pdb_file}"])
-    print(f'Your PDB file is protonated at {pH_value} and fixed: {output_pdb_file}')
     return output_pdb_file
 
 
@@ -77,7 +77,7 @@ def save_pdb2pdbqt(input_pdb_file: str, output_dir: Optional[str] = None) -> str
 # obabel pdbfixer_74_keep_none.pdb -xr -O pdbfixer_obable.pdbqt
 
 
-def protonate_and_convert(input_file: str,
+def fix_protonate_convert(input_file: str,
                           output_dir: str,
                           pH_value: float = 7.4) -> str:
     """
@@ -92,17 +92,39 @@ def protonate_and_convert(input_file: str,
         str: Path to the output PDBQT file.
     """
     # Perform protonation
-    output_pdb_file = pdbfixer(input_file, output_dir, pH_value)
+    output_pdb_file = pdbfixer(input_file, output_dir)
+    protonated_file = protonation(output_pdb_file, output_dir, pH_value)
     # Convert PQR to PDBQT
-    output_pdbqt_file = save_pdb2pdbqt(output_pdb_file, output_dir)
+    output_pdbqt_file = save_pdb2pdbqt(protonated_file, output_dir)
+    return output_pdbqt_file
+
+def protonate_convert(input_file: str,
+                          output_dir: str,
+                          pH_value: float = 7.4) -> str:
+    """
+    Perform protonation on the input PDB file and convert the output to PDBQT format.
+
+    Args:
+        input_file (str): Path to the input PDB file.
+        pH_value (float): The pH value for protonation.
+        output_dir (str): Directory to save the output files.
+
+    Returns:
+        str: Path to the output PDBQT file.
+    """
+    # Perform protonation
+    protonated_file = protonation(input_file, output_dir, pH_value)
+    # Convert PQR to PDBQT
+    output_pdbqt_file = save_pdb2pdbqt(protonated_file, output_dir)
     return output_pdbqt_file
 
 
 if __name__ == '__main__':
     print('Protonation and conversion is starting!')
-    input_file = '/Users/nicha/dev/Protein-preparation-pipeline/data/raw/test_pdbqt_prep/6o0k_stripped.pdb'
-    output_dir = './data/raw/test_pdbqt_prep'
-    pH_value = 7.0
-    output_pdbqt_file = protonate_and_convert(input_file, output_dir, pH_value)
+    input_file = '/Users/nicha/dev/Protein-preparation-pipeline/data/processed/3hvc/3hvc.pdb'
+    output_dir = '/Users/nicha/dev/Protein-preparation-pipeline/data/processed/3hvc'
+    pH_value = 7.4
+    #output_pdbqt_file = fix_protonate_convert(input_file, output_dir, pH_value)
+    output_pdbqt_file = protonate_convert(input_file, output_dir, pH_value)
     # pdbfixer(output_pdbqt_file, output_pdbqt_file)
     print(f'Output PDBQT file saved at: {output_pdbqt_file}')
