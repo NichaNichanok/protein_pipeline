@@ -4,9 +4,9 @@ from typing import Any, Dict, Optional
 import requests
 from bs4 import BeautifulSoup, ResultSet, Tag
 
-from pdb_retrival.downloader import validate_pdb_id
+from pdb_retrieval.downloader import validate_pdb_id
 
-#from src.pdb_retrival.downloader import validate_pdb_id
+#from src.pdb_retrieval.downloader import validate_pdb_id
 
 
 class PDBDataRetriever:
