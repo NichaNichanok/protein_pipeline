@@ -3,11 +3,11 @@ from unittest.mock import Mock, patch
 
 import requests
 
-from src.pdb_retrival.data_retriever import PDBDataRetriever
+from src.pdb_retrieval.data_retriever import PDBDataRetriever
 
 
 class TestPDBDataRetriever(unittest.TestCase):
-    @patch("src.pdb_retrival.data_retriever.requests.get")
+    @patch("src.pdb_retrieval.data_retriever.requests.get")
     def test_fetch_data_success(self, mock_get: Mock) -> None:
         """Test fetch_data method with a successful HTTP response."""
         mock_response = Mock()
@@ -22,7 +22,7 @@ class TestPDBDataRetriever(unittest.TestCase):
         self.assertEqual(result, "<html>Sample HTML Content</html>")
         mock_get.assert_called_once_with(retriever.url, timeout=10)
 
-    @patch("src.pdb_retrival.data_retriever.requests.get")
+    @patch("src.pdb_retrieval.data_retriever.requests.get")
     def test_fetch_data_failure(self, mock_get: Mock) -> None:
         """Test fetch_data method with a failed HTTP response."""
         mock_get.side_effect = requests.exceptions.RequestException("Connection error")
@@ -43,7 +43,7 @@ class TestPDBDataRetriever(unittest.TestCase):
         self.assertIsNone(result["experiment_data"]["resolution"])
         self.assertIsNone(result["experiment_data"]["release_date"])
 
-    @patch("src.pdb_retrival.data_retriever.requests.get")
+    @patch("src.pdb_retrieval.data_retriever.requests.get")
     def test_get_experiment_method(self, mock_bs: Mock) -> None:
         """Test _get_experiment_method method."""
         mock_soup = Mock()
@@ -58,7 +58,7 @@ class TestPDBDataRetriever(unittest.TestCase):
 
         self.assertEqual(result, "X-RAY DIFFRACTION")
 
-    @patch("src.pdb_retrival.data_retriever.requests.get")
+    @patch("src.pdb_retrieval.data_retriever.requests.get")
     def test_get_resolution(self, mock_bs: Mock) -> None:
         """Test _get_resolution method."""
         mock_soup = Mock()
@@ -73,7 +73,7 @@ class TestPDBDataRetriever(unittest.TestCase):
 
         self.assertEqual(result, "1.62 Å")
 
-    @patch("src.pdb_retrival.data_retriever.requests.get")
+    @patch("src.pdb_retrieval.data_retriever.requests.get")
     def test_get_release_date(self, mock_bs: Mock) -> None:
         """Test _get_release_date method."""
         mock_soup = Mock()
@@ -95,7 +95,7 @@ class TestPDBDataRetriever(unittest.TestCase):
         self.assertFalse(retriever.is_date_format("01-01-2024"))
         self.assertFalse(retriever.is_date_format("Not a date"))
 
-    @patch("src.pdb_retrival.data_retriever.requests.get")
+    @patch("src.pdb_retrieval.data_retriever.requests.get")
     def test_get_macromolecule_name(self, mock_bs: Mock) -> None:
         """Test _get_macromolecule_name method."""
         mock_soup = Mock()
